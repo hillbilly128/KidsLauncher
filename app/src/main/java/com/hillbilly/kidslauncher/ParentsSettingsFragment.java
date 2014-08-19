@@ -1,7 +1,6 @@
 package com.hillbilly.kidslauncher;
 
 import android.content.Intent;
-import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
 import android.os.Bundle;
@@ -60,4 +59,6 @@ public class ParentsSettingsFragment extends PreferenceFragment {
 		//setPreferenceScreen(ps);
         Log.v(TAG, "Preference Screen set to ps");
 	}
+
+
 }
