@@ -48,9 +48,21 @@ public class KidsContentProvider extends ContentProvider {
 
     @Override
     public String getType(Uri uri) {
-        // TODO: Implement this to handle requests for the MIME type of the data
-        // at the given URI.
-        throw new UnsupportedOperationException("Not yet implemented");
+        String result = "";
+
+        switch (ParentsActivityContract.MATCHER.match(uri)) {
+            case ParentsActivityContract.ContactsTable.CONTENT_ID:
+                result += ParentsActivityContract.ContactsTable.SINGLE_MIME;
+                break;
+            case ParentsActivityContract.ContactsTable.CONTENT:
+                result += ParentsActivityContract.ContactsTable.MULTI_MIME;
+                break;
+            default:
+                result += ParentsActivityContract.MULTI_MIME;
+                break;
+        }
+
+        return result;
     }
 
     @Override

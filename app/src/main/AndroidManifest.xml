@@ -23,17 +23,32 @@
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
         </activity>
-        <activity android:name=".AppsListActivity" />
+        <activity android:name=".AppsListActivity">
+            <intent-filter>
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
         <activity android:name=".LoginActivity" />
-        <activity
-            android:name=".PhoneBook"
-            android:label="@string/title_activity_phone_book"></activity>
 
         <provider
             android:name=".KidsContentProvider"
             android:authorities="com.hillbilly.kidslauncher.provider"
             android:enabled="true"
-            android:exported="false"></provider>
+            android:exported="false" />
+
+        <activity
+            android:name=".PersonListActivity"
+            android:label="@string/title_person_list"></activity>
+        <activity
+            android:name=".PersonDetailActivity"
+            android:label="@string/title_person_detail"
+            android:parentActivityName=".PersonListActivity">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="com.hillbilly.kidslauncher.PersonListActivity" />
+        </activity>
     </application>
+
+    <uses-permission android:name="android.permission.READ_CONTACTS" />
 
 </manifest>
