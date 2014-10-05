@@ -11,8 +11,10 @@ import android.net.Uri;
 
 public class KidsContentProvider extends ContentProvider {
 
-    private static final int VER = 1;
     private final static String DBNAME = "KidsLaunch";
+
+    private static final int VER = 1;
+
     /**
      * A pointer to the current Database Helper Object
      */
@@ -32,13 +34,15 @@ public class KidsContentProvider extends ContentProvider {
                 break;
             case ParentsActivityContract.ContactsTable.CONTENT_ID:
                 tableName = ParentsActivityContract.ContactsTable.TABLE_NAME;
-                selection += ParentsActivityContract.ContactsTable.Columns._ID + "=" + uri.getLastPathSegment();
+                selection += ParentsActivityContract.ContactsTable.Columns._ID + "=" +
+                             uri.getLastPathSegment();
                 break;
             default:
                 throw new IllegalArgumentException("Unknown URI Received: " + uri.toString());
         }
 
-        result = helper.getWritableDatabase().delete(tableName, selection, selectionArgs);
+        result = helper.getWritableDatabase()
+                .delete(tableName, selection, selectionArgs);
 
         if (result == -1) {
             throw new NullPointerException();
@@ -78,7 +82,9 @@ public class KidsContentProvider extends ContentProvider {
                 throw new IllegalArgumentException("Unknown URI Received: " + uri.toString());
         }
 
-        result = ContentUris.withAppendedId(ParentsActivityContract.BASE_URI, helper.getWritableDatabase().insert(tableName, "", values));
+        result = ContentUris.withAppendedId(ParentsActivityContract.BASE_URI,
+                                            helper.getWritableDatabase()
+                                                    .insert(tableName, "", values));
 
         if (result == null) {
             throw new NullPointerException();
@@ -111,13 +117,16 @@ public class KidsContentProvider extends ContentProvider {
                 break;
             case ParentsActivityContract.ContactsTable.CONTENT_ID:
                 tableName = ParentsActivityContract.ContactsTable.TABLE_NAME;
-                selection += ParentsActivityContract.ContactsTable.Columns._ID + "=" + uri.getLastPathSegment();
+                selection += ParentsActivityContract.ContactsTable.Columns._ID + "=" +
+                             uri.getLastPathSegment();
                 break;
             default:
                 throw new IllegalArgumentException("Unknown URI Received: " + uri.toString());
         }
 
-        result = helper.getReadableDatabase().query(tableName, projection, selection, selectionArgs, groupBy, having, orderBy, limit);
+        result = helper.getReadableDatabase()
+                .query(tableName, projection, selection, selectionArgs, groupBy, having, orderBy,
+                       limit);
 
         if (result == null) {
             throw new NullPointerException();
@@ -137,13 +146,15 @@ public class KidsContentProvider extends ContentProvider {
                 break;
             case ParentsActivityContract.ContactsTable.CONTENT_ID:
                 tableName = ParentsActivityContract.ContactsTable.TABLE_NAME;
-                selection += ParentsActivityContract.ContactsTable.Columns._ID + "=" + uri.getLastPathSegment();
+                selection += ParentsActivityContract.ContactsTable.Columns._ID + "=" +
+                             uri.getLastPathSegment();
                 break;
             default:
                 throw new IllegalArgumentException("Unknown URI Received: " + uri.toString());
         }
 
-        result = helper.getWritableDatabase().update(tableName, values, selection, selectionArgs);
+        result = helper.getWritableDatabase()
+                .update(tableName, values, selection, selectionArgs);
 
         if (result == -1) {
             throw new NullPointerException();
@@ -154,7 +165,8 @@ public class KidsContentProvider extends ContentProvider {
     private class OpenHelper extends SQLiteOpenHelper {
 
 
-        public OpenHelper(Context context, String name, SQLiteDatabase.CursorFactory factory, int version) {
+        public OpenHelper(Context context, String name, SQLiteDatabase.CursorFactory factory,
+                          int version) {
             super(context, name, factory, version);
         }
 
@@ -167,7 +179,8 @@ public class KidsContentProvider extends ContentProvider {
         public void onUpgrade(SQLiteDatabase sqLiteDatabase, int i, int i2) {
             if (i2 < i) {
                 // Drop Tables
-                sqLiteDatabase.execSQL("DROP TABLE " + ParentsActivityContract.ContactsTable.TABLE_NAME);
+                sqLiteDatabase.execSQL(
+                        "DROP TABLE " + ParentsActivityContract.ContactsTable.TABLE_NAME);
 
                 //Recreate Tables
                 sqLiteDatabase.execSQL(ParentsActivityContract.ContactsTable.CREATE_SQL);

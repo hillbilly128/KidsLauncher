@@ -20,18 +20,18 @@ import java.util.List;
 
 public class AppsListActivity extends Activity {
 
-    private PackageManager manager;
-
     private List<AppDetail> apps;
 
     private ListView list;
+
+    private PackageManager manager;
 
     private void addClickListener() {
         list.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> av, View v, int pos, long id) {
                 Intent i = manager.getLaunchIntentForPackage(apps.get(pos).name
-                        .toString());
+                                                                     .toString());
                 AppsListActivity.this.startActivity(i);
             }
         });
@@ -65,7 +65,7 @@ public class AppsListActivity extends Activity {
         list = (ListView) this.findViewById(R.id.apps_list);
 
         ArrayAdapter<AppDetail> adapter = new ArrayAdapter<AppDetail>(this,
-                R.layout.list_item, apps) {
+                                                                      R.layout.list_item, apps) {
             @Override
             public View getView(int position, View convertView, ViewGroup parent) {
                 if (convertView == null) {

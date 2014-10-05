@@ -22,7 +22,8 @@ public class MainActivity extends Activity {
      */
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        this.getMenuInflater().inflate(R.menu.main, menu);
+        this.getMenuInflater()
+                .inflate(R.menu.main, menu);
         return true;
     }
 

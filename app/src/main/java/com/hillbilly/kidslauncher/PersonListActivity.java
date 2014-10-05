@@ -70,7 +70,8 @@ public class PersonListActivity extends Activity
                     .replace(R.id.person_detail_container, fragment)
                     .commit();
 
-        } else {
+        }
+        else {
             // In single-pane mode, simply start the detail activity
             // for the selected item ID.
             Intent detailIntent = new Intent(this, PersonDetailActivity.class);

@@ -12,32 +12,31 @@ import android.util.Log;
 
 import java.util.List;
 
-public class ParentsSettingsFragment extends PreferenceFragment {
+public class ParentsAppSettingFragment extends PreferenceFragment {
 
-    private static final String TAG = "Parent Settings";
+    private static final String TAG = "Parent App Settings";
 
-	/*
-	 * (non-Javadoc)
-	 *
-	 * @see android.preference.PreferenceActivity#onCreate(android.os.Bundle)
-	 */
-	@Override
-	public void onCreate(Bundle savedInstanceState) {
-		super.onCreate(savedInstanceState);
+    /*
+     * (non-Javadoc)
+     *
+     * @see android.preference.PreferenceActivity#onCreate(android.os.Bundle)
+     */
+    @Override
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
 
-		//PreferenceManager prefm = getPreferenceManager();
-		addPreferencesFromResource(R.xml.parents_preference);
-		PreferenceScreen ps = getPreferenceScreen();
-        Log.v(TAG,"Preference Screen - " + ps.getTitle());
-        PreferenceCategory pc = new PreferenceCategory(getActivity());
-        Log.v(TAG,"Preference Category - " + pc.getTitle());
-		pc.setTitle(R.string.Pref_Cat_Apps);
-        Log.v(TAG,"PC Title Set");
-		pc.setSummary(R.string.Pref_Cat_Apps_Summary);
+        addPreferencesFromResource(R.xml.parents_app_preference);
+        PreferenceScreen ps = getPreferenceScreen();
+        Log.v(TAG, "Preference Screen - " + ps.getTitle());
+        PreferenceCategory appsCategory = new PreferenceCategory(getActivity());
+        Log.v(TAG, "Preference Category - " + appsCategory.getTitle());
+        appsCategory.setTitle(R.string.Pref_Cat_Apps);
+        Log.v(TAG, "PC Title Set");
+        appsCategory.setSummary(R.string.Pref_Cat_Apps_Summary);
         Log.v(TAG, "PC Summary Set");
-		PackageManager pm = getActivity().getPackageManager();
+        PackageManager pm = getActivity().getPackageManager();
         Log.v(TAG, "Package Manager - " + pm.toString());
-        ps.addPreference(pc);
+        ps.addPreference(appsCategory);
         Log.v(TAG, "PC added to PS");
         Intent i = new Intent(Intent.ACTION_MAIN, null);
         i.addCategory(Intent.CATEGORY_LAUNCHER);
@@ -52,13 +51,9 @@ public class ParentsSettingsFragment extends PreferenceFragment {
             p.setChecked(false);
             p.setKey(ri.activityInfo.packageName);
             Log.v(TAG, p.toString());
-            pc.addPreference(p);
-
+            appsCategory.addPreference(p);
         }
-
-		//setPreferenceScreen(ps);
+        //setPreferenceScreen(ps);
         Log.v(TAG, "Preference Screen set to ps");
-	}
-
-
+    }
 }

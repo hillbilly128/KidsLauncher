@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
-<manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.hillbilly.kidslauncher">
+<manifest
+    package="com.hillbilly.kidslauncher"
+    xmlns:android="http://schemas.android.com/apk/res/android">
 
     <application
         android:allowBackup="true"
@@ -10,45 +11,60 @@
         android:launchMode="singleTask"
         android:stateNotNeeded="true"
         android:theme="@style/AppTheme">
+
+        <!--android:launchMode="singleTask"-->
         <activity
             android:name=".MainActivity"
             android:excludeFromRecents="true"
-            android:launchMode="singleTask"
             android:screenOrientation="portrait"
             android:theme="@android:style/Theme.Holo.Wallpaper.NoTitleBar">
             <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
+                <action android:name="android.intent.action.MAIN"/>
 
-                <category android:name="android.intent.category.HOME" />
-                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.HOME"/>
+                <category android:name="android.intent.category.DEFAULT"/>
             </intent-filter>
         </activity>
-        <activity android:name=".AppsListActivity">
-            <intent-filter>
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
-        </activity>
-        <activity android:name=".LoginActivity" />
+        <activity
+            android:name=".AppsListActivity"
+            android:parentActivityName=".MainActivity"></activity>
+        <activity android:name=".LoginActivity"/>
 
         <provider
             android:name=".KidsContentProvider"
             android:authorities="com.hillbilly.kidslauncher.provider"
             android:enabled="true"
-            android:exported="false" />
+            android:exported="false"/>
 
         <activity
             android:name=".PersonListActivity"
-            android:label="@string/title_person_list"></activity>
+            android:label="@string/title_person_list">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN"/>
+
+                <category android:name="android.intent.category.APP_CONTACTS"/>
+                <category android:name="android.intent.category.LAUNCHER"/>
+            </intent-filter>
+        </activity>
+
         <activity
             android:name=".PersonDetailActivity"
             android:label="@string/title_person_detail"
             android:parentActivityName=".PersonListActivity">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
-                android:value="com.hillbilly.kidslauncher.PersonListActivity" />
+                android:value="com.hillbilly.kidslauncher.PersonListActivity"/>
+        </activity>
+
+        <activity
+            android:name=".ParentsSettingsActivity"
+            android:parentActivityName=".LoginActivity">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="com.hillbilly.kidslauncher.LoginActivity"/>
         </activity>
     </application>
 
-    <uses-permission android:name="android.permission.READ_CONTACTS" />
+    <uses-permission android:name="android.permission.READ_CONTACTS"/>
 
 </manifest>

@@ -1,6 +1,11 @@
 <resources>
     <string name="Pref_Cat_Apps">Usable Applications</string>
-    <string name="Pref_Cat_Apps_Summary">Apps allowed to be used the user. Check to enable the app.</string>
+    <string name="Pref_Cat_Apps_Summary">Apps allowed to be used by the user. Check to enable the app.</string>
     <string name="title_activity_parents_settings">Parents Settings</string>
-
+    <string name="Pref_Cat_Contacts">Permitted Contacts</string>
+    <string name="Pref_Car_Contacts_Summary">Contacts allowed to used by the user</string>
+    <string name="Pref_Header_Apps_Title">Permitted Applications</string>
+    <string name="Pref_Header_Apps_Summary">Applications permitted for the user</string>
+    <string name="Pref_Header_Contacts_Title">Permitted Contacts</string>
+    <string name="Pref_Header_Contacts_Summary">Contacts permitted to be contacted</string>
 </resources>

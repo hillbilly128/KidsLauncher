@@ -8,5 +8,7 @@
     <string name="title_activity_phone_book">PhoneBook</string>
     <string name="title_person_list">People</string>
     <string name="title_person_detail">Person Detail</string>
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="NameLabel">Name</string>
 
 </resources>

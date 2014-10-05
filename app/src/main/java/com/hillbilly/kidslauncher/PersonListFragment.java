@@ -3,15 +3,20 @@ package com.hillbilly.kidslauncher;
 import android.app.Activity;
 import android.app.ListFragment;
 import android.app.LoaderManager;
+import android.content.Context;
 import android.content.CursorLoader;
 import android.content.Loader;
+import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.os.Bundle;
+import android.provider.ContactsContract;
 import android.view.View;
 import android.widget.ListView;
 import android.widget.SimpleCursorAdapter;
 
-import com.hillbilly.kidslauncher.dummy.DummyContent;
+import java.util.ArrayList;
+import java.util.Map;
+
 
 /**
  * A list fragment representing a list of People. This fragment
@@ -22,13 +27,21 @@ import com.hillbilly.kidslauncher.dummy.DummyContent;
  * Activities containing this fragment MUST implement the {@link Callbacks}
  * interface.
  */
-public class PersonListFragment extends ListFragment implements LoaderManager.LoaderCallbacks<Cursor> {
+public class PersonListFragment extends ListFragment
+        implements LoaderManager.LoaderCallbacks<Cursor> {
+
+    public static final String SETTINGS_NAME;
+
+    static {
+        SETTINGS_NAME = PersonListFragment.class.getName() + ".SharedSettings";
+    }
 
     /**
      * The serialization (saved instance state) Bundle key representing the
      * activated item position. Only used on tablets.
      */
     private static final String STATE_ACTIVATED_POSITION = "activated_position";
+
     /**
      * A dummy implementation of the {@link Callbacks} interface that does
      * nothing. Used only when this fragment is not attached to an activity.
@@ -38,23 +51,27 @@ public class PersonListFragment extends ListFragment implements LoaderManager.Lo
         public void onItemSelected(String id) {
         }
     };
+
     /**
      * The fragment's current callback object, which is notified of list item
      * clicks.
      */
     private Callbacks mCallbacks = sDummyCallbacks;
+
     /**
      * The Columns read
      */
     private final String[] proj = new String[]{
-            ParentsActivityContract.ContactsTable.Columns._ID,
-            ParentsActivityContract.ContactsTable.Columns.NAME,
-
+            ContactsContract.Contacts._ID,
+            ContactsContract.Contacts.LOOKUP_KEY,
+            ContactsContract.Contacts.DISPLAY_NAME
     };
+
     /**
      * The current activated item position. Only used on tablets.
      */
     private int mActivatedPosition = ListView.INVALID_POSITION;
+
     private SimpleCursorAdapter mAdapter;
 
     /**
@@ -62,59 +79,6 @@ public class PersonListFragment extends ListFragment implements LoaderManager.Lo
      * fragment (e.g. upon screen orientation changes).
      */
     public PersonListFragment() {
-    }
-
-    @Override
-    public Loader<Cursor> onCreateLoader(int i, Bundle bundle) {
-        return new CursorLoader(getActivity(), ParentsActivityContract.ContactsTable.CONTENT_URI, proj, null, null, null);
-    }
-
-    @Override
-    public void onLoadFinished(Loader<Cursor> cursorLoader, Cursor cursor) {
-        mAdapter.swapCursor(cursor);
-    }
-
-    @Override
-    public void onLoaderReset(Loader<Cursor> cursorLoader) {
-        mAdapter.swapCursor(null);
-    }
-
-    @Override
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-
-        // For the cursor adapter, specify which columns go into which views
-        String[] fromColumns = {ParentsActivityContract.ContactsTable.Columns.NAME};
-        int[] toViews = {android.R.id.text1}; // The TextView in simple_list_item_1
-
-        // Create an empty adapter we will use to display the loaded data.
-        // We pass null for the cursor, then update it in onLoadFinished()
-        mAdapter = new SimpleCursorAdapter(getActivity(),
-                android.R.layout.simple_list_item_1, null,
-                fromColumns, toViews, 0);
-        setListAdapter(mAdapter);
-
-        // Prepare the loader.  Either re-connect with an existing one,
-        // or start a new one.
-        getLoaderManager().initLoader(0, null, this);
-
-        // TODO: replace with a real list adapter.
-//        setListAdapter(new ArrayAdapter<DummyContent.DummyItem>(
-//                getActivity(),
-//                android.R.layout.simple_list_item_activated_1,
-//                android.R.id.text1,
-//                DummyContent.ITEMS));
-    }
-
-    @Override
-    public void onViewCreated(View view, Bundle savedInstanceState) {
-        super.onViewCreated(view, savedInstanceState);
-
-        // Restore the previously serialized activated item position.
-        if (savedInstanceState != null
-                && savedInstanceState.containsKey(STATE_ACTIVATED_POSITION)) {
-            setActivatedPosition(savedInstanceState.getInt(STATE_ACTIVATED_POSITION));
-        }
     }
 
     @Override
@@ -127,6 +91,62 @@ public class PersonListFragment extends ListFragment implements LoaderManager.Lo
         }
 
         mCallbacks = (Callbacks) activity;
+    }
+
+    @Override
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+
+        // For the cursor adapter, specify which columns go into which views
+        String[] fromColumns = {ContactsContract.Contacts.DISPLAY_NAME};
+        int[] toViews = {android.R.id.text1}; // The TextView in simple_list_item_1
+
+        // Create an empty adapter we will use to display the loaded data.
+        // We pass null for the cursor, then update it in onLoadFinished()
+        mAdapter = new SimpleCursorAdapter(getActivity(),
+                                           android.R.layout.simple_list_item_1, null,
+                                           fromColumns, toViews, 0);
+        setListAdapter(mAdapter);
+
+        // Prepare the loader.  Either re-connect with an existing one,
+        // or start a new one.
+        getLoaderManager().initLoader(0, null, this);
+
+    }
+
+    @Override
+    public Loader<Cursor> onCreateLoader(int i, Bundle bundle) {
+        SharedPreferences sharedPref = getActivity().getSharedPreferences(SETTINGS_NAME,
+                                                                          Context.MODE_PRIVATE);
+
+        ArrayList<String> selectionArgs = new ArrayList<String>();
+
+        Map<String, ?> prefs = sharedPref.getAll();
+
+        String selection = ContactsContract.Contacts._ID + " = ?";
+
+        for (String key : prefs.keySet()) {
+            try {
+                int id = Integer.parseInt(key);
+                if ((Boolean) prefs.get(key)) {
+                    selectionArgs.add(key);
+                }
+
+            }
+            catch (NumberFormatException nfe) {}
+        }
+
+        if (selectionArgs.size() > 1) {
+            for (int c = 1; c < selectionArgs.size(); c++) {
+                selection += " OR " + ContactsContract.Contacts._ID + " = ?";
+            }
+        }
+
+        CursorLoader c = new CursorLoader(getActivity(), ContactsContract.Contacts.CONTENT_URI,
+                                          proj, selection, selectionArgs.toArray(new String[0]),
+                                          null);
+
+        return c;
     }
 
     @Override
@@ -143,7 +163,21 @@ public class PersonListFragment extends ListFragment implements LoaderManager.Lo
 
         // Notify the active callbacks interface (the activity, if the
         // fragment is attached to one) that an item has been selected.
-        mCallbacks.onItemSelected(DummyContent.ITEMS.get(position).id);
+
+        mCallbacks.onItemSelected(mAdapter.getCursor()
+                                          .getString(mAdapter.getCursor()
+                                                             .getColumnIndex(
+                                                                     ContactsContract.Contacts.LOOKUP_KEY)));
+    }
+
+    @Override
+    public void onLoadFinished(Loader<Cursor> cursorLoader, Cursor cursor) {
+        mAdapter.swapCursor(cursor);
+    }
+
+    @Override
+    public void onLoaderReset(Loader<Cursor> cursorLoader) {
+        mAdapter.swapCursor(null);
     }
 
     @Override
@@ -155,6 +189,17 @@ public class PersonListFragment extends ListFragment implements LoaderManager.Lo
         }
     }
 
+    @Override
+    public void onViewCreated(View view, Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
+
+        // Restore the previously serialized activated item position.
+        if (savedInstanceState != null
+            && savedInstanceState.containsKey(STATE_ACTIVATED_POSITION)) {
+            setActivatedPosition(savedInstanceState.getInt(STATE_ACTIVATED_POSITION));
+        }
+    }
+
     /**
      * Turns on activate-on-click mode. When this mode is on, list items will be
      * given the 'activated' state when touched.
@@ -163,14 +208,17 @@ public class PersonListFragment extends ListFragment implements LoaderManager.Lo
         // When setting CHOICE_MODE_SINGLE, ListView will automatically
         // give items the 'activated' state when touched.
         getListView().setChoiceMode(activateOnItemClick
-                ? ListView.CHOICE_MODE_SINGLE
-                : ListView.CHOICE_MODE_NONE);
+                                    ?
+                                    ListView.CHOICE_MODE_SINGLE
+                                    :
+                                    ListView.CHOICE_MODE_NONE);
     }
 
     private void setActivatedPosition(int position) {
         if (position == ListView.INVALID_POSITION) {
             getListView().setItemChecked(mActivatedPosition, false);
-        } else {
+        }
+        else {
             getListView().setItemChecked(position, true);
         }
 

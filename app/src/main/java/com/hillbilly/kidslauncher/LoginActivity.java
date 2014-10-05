@@ -4,8 +4,8 @@ import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.annotation.TargetApi;
 import android.app.Activity;
-import android.app.FragmentManager;
 import android.app.LoaderManager.LoaderCallbacks;
+import android.content.Intent;
 import android.content.Loader;
 import android.database.Cursor;
 import android.os.AsyncTask;
@@ -36,15 +36,21 @@ public class LoginActivity extends Activity implements LoaderCallbacks<Cursor> {
      * TODO: remove after connecting to a real authentication system.
      */
     private static final String[] DUMMY_CREDENTIALS = new String[]{"parent@home.com:password"};
+
     /**
      * Keep track of the login task to ensure we can cancel it if requested.
      */
     private UserLoginTask mAuthTask = null;
+
     // UI references.
     private AutoCompleteTextView mEmailView;
+
     private View mFragmentContainer;
+
     private View mLoginFormView;
+
     private EditText mPasswordView;
+
     private View mProgressView;
 
     private void addEmailsToAutoComplete(List<String> emailAddressCollection) {
@@ -73,8 +79,10 @@ public class LoginActivity extends Activity implements LoaderCallbacks<Cursor> {
         mPasswordView.setError(null);
 
         // Store values at the time of the login attempt.
-        String email = mEmailView.getText().toString();
-        String password = mPasswordView.getText().toString();
+        String email = mEmailView.getText()
+                .toString();
+        String password = mPasswordView.getText()
+                .toString();
 
         boolean cancel = false;
         View focusView = null;
@@ -82,7 +90,7 @@ public class LoginActivity extends Activity implements LoaderCallbacks<Cursor> {
         // Check for a valid password, if the user entered one.
         if (!TextUtils.isEmpty(password) && !this.isPasswordValid(password)) {
             mPasswordView.setError(this
-                    .getString(R.string.error_invalid_password));
+                                           .getString(R.string.error_invalid_password));
             focusView = mPasswordView;
             cancel = true;
         }
@@ -92,7 +100,8 @@ public class LoginActivity extends Activity implements LoaderCallbacks<Cursor> {
             mEmailView.setError(this.getString(R.string.error_field_required));
             focusView = mEmailView;
             cancel = true;
-        } else if (!this.isEmailValid(email)) {
+        }
+        else if (!this.isEmailValid(email)) {
             mEmailView.setError(this.getString(R.string.error_invalid_email));
             focusView = mEmailView;
             cancel = true;
@@ -102,7 +111,8 @@ public class LoginActivity extends Activity implements LoaderCallbacks<Cursor> {
             // There was an error; don't attempt login and focus the first
             // form field with an error.
             focusView.requestFocus();
-        } else {
+        }
+        else {
             // Show a progress spinner, and kick off a background task to
             // perform the user login attempt.
             this.showProgress(true);
@@ -178,11 +188,6 @@ public class LoginActivity extends Activity implements LoaderCallbacks<Cursor> {
     }
 
     @Override
-    public void onLoaderReset(Loader<Cursor> cursorLoader) {
-
-    }
-
-    @Override
     public void onLoadFinished(Loader<Cursor> cursorLoader, Cursor cursor) {
         List<String> emails = new ArrayList<String>();
         cursor.moveToFirst();
@@ -194,8 +199,14 @@ public class LoginActivity extends Activity implements LoaderCallbacks<Cursor> {
         this.addEmailsToAutoComplete(emails);
     }
 
+    @Override
+    public void onLoaderReset(Loader<Cursor> cursorLoader) {
+
+    }
+
     private void populateAutoComplete() {
-        this.getLoaderManager().initLoader(0, null, this);
+        this.getLoaderManager()
+                .initLoader(0, null, this);
     }
 
     /**
@@ -207,35 +218,55 @@ public class LoginActivity extends Activity implements LoaderCallbacks<Cursor> {
         // for very easy animations. If available, use these APIs to fade-in
         // the progress spinner.
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB_MR2) {
-            int shortAnimTime = this.getResources().getInteger(
-                    android.R.integer.config_shortAnimTime);
+            int shortAnimTime = this.getResources()
+                    .getInteger(
+                            android.R.integer.config_shortAnimTime);
 
-            mLoginFormView.setVisibility(show ? View.GONE : View.VISIBLE);
-            mLoginFormView.animate().setDuration(shortAnimTime)
-                    .alpha(show ? 0 : 1)
+            mLoginFormView.setVisibility(show ?
+                                         View.GONE :
+                                         View.VISIBLE);
+            mLoginFormView.animate()
+                    .setDuration(shortAnimTime)
+                    .alpha(show ?
+                           0 :
+                           1)
                     .setListener(new AnimatorListenerAdapter() {
                         @Override
                         public void onAnimationEnd(Animator animation) {
-                            mLoginFormView.setVisibility(show ? View.GONE
-                                    : View.VISIBLE);
+                            mLoginFormView.setVisibility(show ?
+                                                         View.GONE
+                                                              :
+                                                         View.VISIBLE);
                         }
                     });
 
-            mProgressView.setVisibility(show ? View.VISIBLE : View.GONE);
-            mProgressView.animate().setDuration(shortAnimTime)
-                    .alpha(show ? 1 : 0)
+            mProgressView.setVisibility(show ?
+                                        View.VISIBLE :
+                                        View.GONE);
+            mProgressView.animate()
+                    .setDuration(shortAnimTime)
+                    .alpha(show ?
+                           1 :
+                           0)
                     .setListener(new AnimatorListenerAdapter() {
                         @Override
                         public void onAnimationEnd(Animator animation) {
-                            mProgressView.setVisibility(show ? View.VISIBLE
-                                    : View.GONE);
+                            mProgressView.setVisibility(show ?
+                                                        View.VISIBLE
+                                                             :
+                                                        View.GONE);
                         }
                     });
-        } else {
+        }
+        else {
             // The ViewPropertyAnimator APIs are not available, so simply show
             // and hide the relevant UI components.
-            mProgressView.setVisibility(show ? View.VISIBLE : View.GONE);
-            mLoginFormView.setVisibility(show ? View.GONE : View.VISIBLE);
+            mProgressView.setVisibility(show ?
+                                        View.VISIBLE :
+                                        View.GONE);
+            mLoginFormView.setVisibility(show ?
+                                         View.GONE :
+                                         View.VISIBLE);
         }
     }
 
@@ -244,7 +275,7 @@ public class LoginActivity extends Activity implements LoaderCallbacks<Cursor> {
 
         int IS_PRIMARY = 1;
         String[] PROJECTION = {ContactsContract.CommonDataKinds.Email.ADDRESS,
-                ContactsContract.CommonDataKinds.Email.IS_PRIMARY,};
+                               ContactsContract.CommonDataKinds.Email.IS_PRIMARY,};
     }
 
     /**
@@ -254,6 +285,7 @@ public class LoginActivity extends Activity implements LoaderCallbacks<Cursor> {
     public class UserLoginTask extends AsyncTask<Void, Void, Boolean> {
 
         private final String mEmail;
+
         private final String mPassword;
 
         UserLoginTask(String email, String password) {
@@ -265,12 +297,12 @@ public class LoginActivity extends Activity implements LoaderCallbacks<Cursor> {
         protected Boolean doInBackground(Void... params) {
             // TODO: attempt authentication against a network service.
 
-            try {
-                // Simulate network access.
-                Thread.sleep(2000);
-            } catch (InterruptedException e) {
-                return false;
-            }
+//            try {
+//                // Simulate network access.
+//                Thread.sleep(2000);
+//            } catch (InterruptedException e) {
+//                return false;
+//            }
 
             for (String credential : LoginActivity.DUMMY_CREDENTIALS) {
                 String[] pieces = credential.split(":");
@@ -301,7 +333,8 @@ public class LoginActivity extends Activity implements LoaderCallbacks<Cursor> {
                             .getInteger(android.R.integer.config_shortAnimTime);
 
                     mLoginFormView.setVisibility(View.GONE);
-                    mLoginFormView.animate().setDuration(shortAnimTime)
+                    mLoginFormView.animate()
+                            .setDuration(shortAnimTime)
                             .alpha(0)
                             .setListener(new AnimatorListenerAdapter() {
                                 @Override
@@ -311,7 +344,9 @@ public class LoginActivity extends Activity implements LoaderCallbacks<Cursor> {
                             });
 
                     mProgressView.setVisibility(View.GONE);
-                    mProgressView.animate().setDuration(shortAnimTime).alpha(0)
+                    mProgressView.animate()
+                            .setDuration(shortAnimTime)
+                            .alpha(0)
                             .setListener(new AnimatorListenerAdapter() {
                                 @Override
                                 public void onAnimationEnd(Animator animation) {
@@ -320,7 +355,8 @@ public class LoginActivity extends Activity implements LoaderCallbacks<Cursor> {
                             });
 
                     mFragmentContainer.setVisibility(View.VISIBLE);
-                    mFragmentContainer.animate().setDuration(shortAnimTime)
+                    mFragmentContainer.animate()
+                            .setDuration(shortAnimTime)
                             .alpha(1)
                             .setListener(new AnimatorListenerAdapter() {
                                 @Override
@@ -329,7 +365,8 @@ public class LoginActivity extends Activity implements LoaderCallbacks<Cursor> {
                                             .setVisibility(View.VISIBLE);
                                 }
                             });
-                } else {
+                }
+                else {
                     // The ViewPropertyAnimator APIs are not available, so
                     // simply show
                     // and hide the relevant UI components.
@@ -338,14 +375,18 @@ public class LoginActivity extends Activity implements LoaderCallbacks<Cursor> {
                     mFragmentContainer.setVisibility(View.VISIBLE);
                 }
 
-                FragmentManager fm = LoginActivity.this.getFragmentManager();
+                Intent i = new Intent(LoginActivity.this, ParentsSettingsActivity.class);
+                LoginActivity.this.startActivity(i);
 
-                fm.beginTransaction()
-                        .replace(R.id.fragment_container,
-                                new ParentsSettingsFragment(), null).commit();
-            } else {
+//                FragmentManager fm = LoginActivity.this.getFragmentManager();
+//
+//                fm.beginTransaction()
+//                        .replace(R.id.fragment_container,
+//                                new ParentsAppSettingFragment(), null).commit();
+            }
+            else {
                 mPasswordView.setError(LoginActivity.this
-                        .getString(R.string.error_incorrect_password));
+                                               .getString(R.string.error_incorrect_password));
                 mPasswordView.requestFocus();
             }
         }

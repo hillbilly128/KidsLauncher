@@ -40,7 +40,7 @@ public class PersonDetailActivity extends Activity {
             // using a fragment transaction.
             Bundle arguments = new Bundle();
             arguments.putString(PersonDetailFragment.ARG_ITEM_ID,
-                    getIntent().getStringExtra(PersonDetailFragment.ARG_ITEM_ID));
+                                getIntent().getStringExtra(PersonDetailFragment.ARG_ITEM_ID));
             PersonDetailFragment fragment = new PersonDetailFragment();
             fragment.setArguments(arguments);
             getFragmentManager().beginTransaction()
