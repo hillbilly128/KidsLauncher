@@ -2,16 +2,19 @@ package com.hillbilly.kidslauncher;
 
 import android.app.Fragment;
 import android.app.LoaderManager;
+import android.content.Context;
 import android.content.CursorLoader;
 import android.content.Loader;
+import android.content.res.Resources;
 import android.database.Cursor;
 import android.os.Bundle;
 import android.provider.ContactsContract;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
+import android.widget.CursorAdapter;
 import android.widget.ListView;
-import android.widget.SimpleCursorAdapter;
 import android.widget.TextView;
 
 /**
@@ -37,7 +40,7 @@ public class PersonDetailFragment extends Fragment
     private static final String[] PROJECTION =
             {
                     ContactsContract.Data._ID,
-                    ContactsContract.Contacts.DISPLAY_NAME,
+                    ContactsContract.Data.DISPLAY_NAME,
                     ContactsContract.Data.MIMETYPE,
                     ContactsContract.Data.DATA1,
                     ContactsContract.Data.DATA2,
@@ -59,16 +62,10 @@ public class PersonDetailFragment extends Fragment
     /*
      * Defines a string that specifies a sort order of MIME type
      */
-    private static final String SORT_ORDER = ContactsContract.Contacts.Data.MIMETYPE;
+    private static final String SORT_ORDER = ContactsContract.Data.MIMETYPE;
 
     // Defines the selection clause
     private static String SELECTION = ContactsContract.Data.LOOKUP_KEY + " = ?";
-
-    private final String[] fFromColumns = new String[]{ContactsContract.Data.MIMETYPE,
-                                                       ContactsContract.Data.DATA1};
-
-    private final int[] fToViews = new int[]{R.id.Person_Item_Detail_type,
-                                             R.id.Person_Item_Detail_Detail};
 
     private ListView fLv;
 
@@ -77,7 +74,7 @@ public class PersonDetailFragment extends Fragment
      */
     private View fRootView;
 
-    private SimpleCursorAdapter fSca;
+    private MultiViewCursorAdapter Fmvca;
 
     /*
      * Defines a variable to contain the selection value. Once you
@@ -142,12 +139,11 @@ public class PersonDetailFragment extends Fragment
                              Bundle savedInstanceState) {
         fRootView = inflater.inflate(R.layout.fragment_person_detail, container, false);
 
-        fSca = new SimpleCursorAdapter(getActivity(), R.layout.person_detail_list_item,
-                                       null, fFromColumns, fToViews, 0);
+        Fmvca = new MultiViewCursorAdapter(getActivity(), null, 0);
 
         fLv = (ListView) fRootView.findViewById(R.id.ContactDataList);
 
-        fLv.setAdapter(fSca);
+        fLv.setAdapter(Fmvca);
 
         return fRootView;
     }
@@ -195,14 +191,7 @@ public class PersonDetailFragment extends Fragment
     public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
         switch (loader.getId()) {
             case CONTACT_DETAILS_LOADER:
-                TextView NameView = (TextView) fRootView.findViewById(
-                        R.id.Person_Detail_Contact_Name);
-
-                data.moveToFirst();
-                NameView.setText(
-                        data.getString(data.getColumnIndex(ContactsContract.Data.DISPLAY_NAME)));
-
-                fSca.swapCursor(data);
+                Fmvca.swapCursor(data);
 
                 break;
         }
@@ -219,8 +208,115 @@ public class PersonDetailFragment extends Fragment
     public void onLoaderReset(Loader<Cursor> loader) {
         switch (loader.getId()) {
             case CONTACT_DETAILS_LOADER:
-                fSca.swapCursor(null);
+                Fmvca.swapCursor(null);
         }
 
     }
+
+    private class MultiViewCursorAdapter extends CursorAdapter {
+
+        public static final int VIEW_TYPE_PHONE = 0;
+
+        public static final int VIEW_TYPE_EMAIL = 1;
+
+        private LayoutInflater li;
+
+        /**
+         * Recommended constructor.
+         *
+         * @param context The context
+         * @param c       The cursor from which to get the data.
+         * @param flags   Flags used to determine the behavior of the adapter; may
+         *                be any combination of {@link #FLAG_AUTO_REQUERY} and
+         *                {@link #FLAG_REGISTER_CONTENT_OBSERVER}.
+         */
+        public MultiViewCursorAdapter(Context context, Cursor c, int flags) {
+            super(context, c, flags);
+            li = LayoutInflater.from(context);
+        }
+
+        /**
+         * Bind an existing view to the data pointed to by cursor
+         *
+         * @param view    Existing view, returned earlier by newView
+         * @param context Interface to application's global information
+         * @param cursor  The cursor from which to get the data. The cursor is already
+         */
+        @Override
+        public void bindView(View view, Context context, Cursor cursor) {
+            String mimeType = cursor.getString(
+                    cursor.getColumnIndex(ContactsContract.Data.MIMETYPE));
+            if (mimeType.contentEquals(ContactsContract.CommonDataKinds.Phone.CONTENT_ITEM_TYPE)) {
+                ((TextView) view.findViewById(R.id.Person_Item_Detail_Type)).setText(
+                        ContactsContract.CommonDataKinds.Phone.getTypeLabel(
+                                Resources.getSystem(),
+                                cursor.getType(cursor.getColumnIndex(
+                                        ContactsContract.CommonDataKinds.Phone.TYPE)),
+                                cursor.getString(cursor.getColumnIndex(
+                                        ContactsContract.CommonDataKinds.Phone.LABEL))));
+
+                ((TextView) view.findViewById(R.id.Person_Item_Detail_Number)).setText(
+                        cursor.getString(cursor.getColumnIndex(
+                                ContactsContract.CommonDataKinds.Phone.NUMBER)));
+
+                ((Button) view.findViewById(R.id.Person_Item_Detail_Call)).setOnClickListener(
+                        new View.OnClickListener() {
+                            @Override
+                            public void onClick(View v) {
+                        /* TODO Add on click to initiate phone call */
+                            }
+                        });
+            }
+            else if (mimeType.contentEquals(
+                    ContactsContract.CommonDataKinds.StructuredName.CONTENT_ITEM_TYPE)) {
+                ((TextView) view.findViewById(R.id.Person_Detail_List_Contact_Name)).setText(
+                        cursor.getString(cursor.getColumnIndex(
+                                ContactsContract.CommonDataKinds.StructuredName.DISPLAY_NAME)));
+            }
+        }
+
+        @Override
+        public int getItemViewType(int position) {
+            Cursor c = (Cursor) getItem(position);
+            String mimeType = c.getString(c.getColumnIndex(ContactsContract.Data.MIMETYPE));
+
+            if (mimeType.contentEquals(ContactsContract.CommonDataKinds.Phone.CONTENT_ITEM_TYPE)) {
+                return VIEW_TYPE_PHONE;
+            }
+            return -1;
+        }
+
+        @Override
+        public int getViewTypeCount() {
+            return 2;
+        }
+
+        /**
+         * Makes a new view to hold the data pointed to by cursor.
+         *
+         * @param context Interface to application's global information
+         * @param cursor  The cursor from which to get the data. The cursor is already
+         *                moved to the correct position.
+         * @param parent  The parent to which the new view is attached to
+         *
+         * @return the newly created view.
+         */
+        @Override
+        public View newView(Context context, Cursor cursor, ViewGroup parent) {
+            View result = null;
+
+            String mimeType = cursor.getString(
+                    cursor.getColumnIndex(ContactsContract.Data.MIMETYPE));
+            if (mimeType.contentEquals(ContactsContract.CommonDataKinds.Phone.CONTENT_ITEM_TYPE)) {
+                result = li.inflate(R.layout.person_detail_phone_list_item, parent, false);
+            }
+            else if (mimeType.contentEquals(
+                    ContactsContract.CommonDataKinds.StructuredName.CONTENT_ITEM_TYPE)) {
+                result = li.inflate(R.layout.person_detail_phone_list_name, parent, false);
+            }
+
+            return result;
+        }
+    }
 }
+
