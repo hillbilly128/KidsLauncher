@@ -8,8 +8,6 @@
         android:clearTaskOnLaunch="true"
         android:icon="@drawable/ic_launcher"
         android:label="@string/app_name"
-        android:launchMode="singleTask"
-        android:stateNotNeeded="true"
         android:theme="@style/AppTheme">
 
         <!--android:launchMode="singleTask"-->
@@ -17,6 +15,7 @@
             android:name=".MainActivity"
             android:excludeFromRecents="true"
             android:screenOrientation="portrait"
+            android:launchMode="singleInstance"
             android:theme="@android:style/Theme.Holo.Wallpaper.NoTitleBar">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
@@ -26,8 +25,8 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".AppsListActivity"
-            android:parentActivityName=".MainActivity"></activity>
+            android:name=".AppsListActivity"/>
+
         <activity android:name=".LoginActivity"/>
 
         <provider
@@ -41,7 +40,7 @@
             android:label="@string/title_person_list">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
-
+                <category android:name="android.intent.category.DEFAULT"/>
                 <category android:name="android.intent.category.APP_CONTACTS"/>
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
