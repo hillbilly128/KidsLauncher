@@ -3,11 +3,12 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
               android:layout_width="match_parent"
               android:layout_height="wrap_content"
-              android:orientation="horizontal">
+              android:orientation="horizontal"
+              android:weightSum="13">
 
     <TextView
         android:id="@+id/Person_Item_Detail_Type"
-        android:layout_width="fill_parent"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="center_vertical|left"
         android:layout_weight="2"
@@ -16,26 +17,47 @@
         android:textAppearance="?android:attr/textAppearanceMedium"/>
 
     <TextView
-        android:id="@+id/Person_Item_Detail_Number"
-        android:layout_width="fill_parent"
+        android:id="@+id/Person_Item_Detail_Data"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_gravity="center_vertical|fill_horizontal"
-        android:layout_weight="1"
+        android:layout_weight="10"
         android:editable="false"
         android:gravity="center_vertical|center_horizontal"
         android:inputType="phone"
-        android:phoneNumber="false"
         android:text="1234567890"
         android:textAppearance="?android:attr/textAppearanceMedium"/>
 
-    <Button
-        android:id="@+id/Person_Item_Detail_Call"
-        style="@android:style/Widget.ActionButton"
-        android:layout_width="@dimen/Icon_Width"
-        android:layout_height="@dimen/icon_height"
-        android:layout_gravity="right"
-        android:layout_weight="0"
-        android:drawableStart="@android:drawable/ic_menu_call"
-        android:theme="@android:style/Widget.Holo.ActionButton"/>
+    <LinearLayout
+        android:orientation="horizontal"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:divider="@android:drawable/divider_horizontal_dim_dark"
+        android:showDividers="middle"
+        android:weightSum="2">
+
+        <Button
+            android:id="@+id/Person_Item_Detail_Call"
+            style="@android:style/Widget.ActionButton"
+            android:layout_width="0dp"
+            android:layout_height="@dimen/icon_height"
+            android:layout_gravity="right"
+            android:layout_weight="1"
+            android:drawableLeft="@android:drawable/ic_menu_call"
+            android:theme="@android:style/Widget.Holo.ActionButton"/>
+
+        <Button
+            android:id="@+id/Person_Item_Detail_Sms"
+            style="@android:style/Widget.ActionButton"
+            android:layout_width="0dp"
+            android:layout_height="@dimen/icon_height"
+            android:layout_gravity="right"
+            android:layout_weight="1"
+            android:drawableLeft="@android:drawable/sym_action_email"
+            android:theme="@android:style/Widget.Holo.ActionButton"/>
+    </LinearLayout>
+
+
 
 </LinearLayout>

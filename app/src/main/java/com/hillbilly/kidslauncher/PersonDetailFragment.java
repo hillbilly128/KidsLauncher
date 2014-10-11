@@ -9,11 +9,13 @@ import android.content.res.Resources;
 import android.database.Cursor;
 import android.os.Bundle;
 import android.provider.ContactsContract;
+import android.text.InputType;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.CursorAdapter;
+import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.TextView;
 
@@ -217,9 +219,17 @@ public class PersonDetailFragment extends Fragment
 
         public static final int VIEW_TYPE_PHONE = 0;
 
-        public static final int VIEW_TYPE_EMAIL = 1;
+        public static final int VIEW_TYPE_NAME = 1;
+
+        public static final int VIEW_TYPE_EMAIL = 2;
+
+        public static final int VIEW_TYPE_EVENT = 3;
+
+        public static final int VIEW_TYPE_IM = 4;
 
         private LayoutInflater li;
+
+        private Context fContext;
 
         /**
          * Recommended constructor.
@@ -233,6 +243,7 @@ public class PersonDetailFragment extends Fragment
         public MultiViewCursorAdapter(Context context, Cursor c, int flags) {
             super(context, c, flags);
             li = LayoutInflater.from(context);
+            fContext = context;
         }
 
         /**
@@ -244,34 +255,170 @@ public class PersonDetailFragment extends Fragment
          */
         @Override
         public void bindView(View view, Context context, Cursor cursor) {
+
             String mimeType = cursor.getString(
                     cursor.getColumnIndex(ContactsContract.Data.MIMETYPE));
-            if (mimeType.contentEquals(ContactsContract.CommonDataKinds.Phone.CONTENT_ITEM_TYPE)) {
-                ((TextView) view.findViewById(R.id.Person_Item_Detail_Type)).setText(
-                        ContactsContract.CommonDataKinds.Phone.getTypeLabel(
-                                Resources.getSystem(),
-                                cursor.getType(cursor.getColumnIndex(
-                                        ContactsContract.CommonDataKinds.Phone.TYPE)),
-                                cursor.getString(cursor.getColumnIndex(
-                                        ContactsContract.CommonDataKinds.Phone.LABEL))));
 
-                ((TextView) view.findViewById(R.id.Person_Item_Detail_Number)).setText(
-                        cursor.getString(cursor.getColumnIndex(
-                                ContactsContract.CommonDataKinds.Phone.NUMBER)));
+            Resources res = fContext.getResources();
+            if (view != null){
+                if (mimeType.contentEquals(
+                        ContactsContract.CommonDataKinds.Phone.CONTENT_ITEM_TYPE)) { //Phone
+                    ((TextView) view.findViewById(R.id.Person_Item_Detail_Type)).setText(
+                            ContactsContract.CommonDataKinds.Phone.getTypeLabel(
+                                    Resources.getSystem(),
+                                    cursor.getType(cursor.getColumnIndex(
+                                            ContactsContract.CommonDataKinds.Phone.TYPE)),
+                                    cursor.getString(cursor.getColumnIndex(
+                                            ContactsContract.CommonDataKinds.Phone.LABEL))));
 
-                ((Button) view.findViewById(R.id.Person_Item_Detail_Call)).setOnClickListener(
-                        new View.OnClickListener() {
-                            @Override
-                            public void onClick(View v) {
+                    ((TextView) view.findViewById(R.id.Person_Item_Detail_Data)).setText(
+                            cursor.getString(cursor.getColumnIndex(
+                                    ContactsContract.CommonDataKinds.Phone.NUMBER)));
+
+                    ((Button) view.findViewById(R.id.Person_Item_Detail_Call)).setOnClickListener(
+                            new View.OnClickListener() {
+                                @Override
+                                public void onClick(View v) {
                         /* TODO Add on click to initiate phone call */
-                            }
-                        });
-            }
-            else if (mimeType.contentEquals(
-                    ContactsContract.CommonDataKinds.StructuredName.CONTENT_ITEM_TYPE)) {
-                ((TextView) view.findViewById(R.id.Person_Detail_List_Contact_Name)).setText(
-                        cursor.getString(cursor.getColumnIndex(
-                                ContactsContract.CommonDataKinds.StructuredName.DISPLAY_NAME)));
+                                }
+                            });
+                    ((Button) view.findViewById(R.id.Person_Item_Detail_Sms)).setOnClickListener(
+                            new View.OnClickListener() {
+                                @Override
+                                public void onClick(View v) {
+                         /* TODO add on click to initiate Text message */
+                                }
+                            });
+                }
+                else if (mimeType.contentEquals(
+                        ContactsContract.CommonDataKinds.StructuredName.CONTENT_ITEM_TYPE)) { //Name
+                    ((TextView) view.findViewById(R.id.Person_Detail_List_Contact_Name)).setText(
+                            cursor.getString(cursor.getColumnIndex(
+                                    ContactsContract.CommonDataKinds.StructuredName.DISPLAY_NAME)));
+                }
+                else if (mimeType.contentEquals(
+                        ContactsContract.CommonDataKinds.Email.CONTENT_ITEM_TYPE)) { //Email
+                    ((TextView) view.findViewById(R.id.Person_Item_Detail_Type)).setText(
+                            ContactsContract.CommonDataKinds.Email.getTypeLabel(
+                                    Resources.getSystem(),
+                                    cursor.getType(cursor.getColumnIndex(
+                                            ContactsContract.CommonDataKinds.Email.TYPE)),
+                                    cursor.getString(cursor.getColumnIndex(
+                                            ContactsContract.CommonDataKinds.Email.LABEL))));
+                    TextView data = ((TextView) view.findViewById(R.id.Person_Item_Detail_Data));
+
+                    data.setText(
+                            cursor.getString(cursor.getColumnIndex(
+                                    ContactsContract.CommonDataKinds.Phone.NUMBER)));
+                    data.setInputType(InputType.TYPE_TEXT_VARIATION_EMAIL_ADDRESS);
+
+
+                    LinearLayout.LayoutParams vLayoutParams;
+                    Button b1 = ((Button) view.findViewById(R.id.Person_Item_Detail_Call));
+                    b1.setOnClickListener(
+                            new View.OnClickListener() {
+                                @Override
+                                public void onClick(View v) {
+                        /* TODO Add on click to initiate email */
+                                }
+                            });
+
+                    b1.setCompoundDrawablesWithIntrinsicBounds(
+                            res.getDrawable(android.R.drawable.ic_dialog_email), null, null, null);
+
+                    vLayoutParams = (b1.getLayoutParams()
+                                             .getClass() == LinearLayout.LayoutParams.class) ?
+                                    (LinearLayout.LayoutParams) b1.getLayoutParams() :
+                                    new LinearLayout.LayoutParams(context, null);
+                    vLayoutParams.weight = 2;
+                    b1.setLayoutParams(vLayoutParams);
+
+                    Button b2 = ((Button) view.findViewById(R.id.Person_Item_Detail_Sms));
+                    b2.setVisibility(View.GONE);
+                }
+                else if (mimeType.contentEquals(
+                        ContactsContract.CommonDataKinds.Event.CONTENT_ITEM_TYPE)) { //Event
+                    TextView type = ((TextView) view.findViewById(R.id.Person_Item_Detail_Type));
+
+                    switch (ContactsContract.CommonDataKinds.Event.getTypeResource(
+                            cursor.getInt(cursor.getColumnIndex(
+                                    ContactsContract.CommonDataKinds.Event.TYPE)))) {
+                        case ContactsContract.CommonDataKinds.Event.TYPE_ANNIVERSARY:
+                            type.setText("Anniversary");
+                            break;
+                        case ContactsContract.CommonDataKinds.Event.TYPE_BIRTHDAY:
+                            type.setText("Birthday");
+                            break;
+                        case ContactsContract.CommonDataKinds.Event.TYPE_OTHER:
+                            type.setText("Other");
+                            break;
+                        case ContactsContract.CommonDataKinds.Event.TYPE_CUSTOM:
+                            type.setText(cursor.getString(cursor.getColumnIndex(
+                                    ContactsContract.CommonDataKinds.Event.LABEL)));
+                            break;
+                    }
+
+                    TextView data = ((TextView) view.findViewById(R.id.Person_Item_Detail_Data));
+
+                    data.setText(
+                            cursor.getString(cursor.getColumnIndex(
+                                    ContactsContract.CommonDataKinds.Event.START_DATE)));
+                    data.setInputType(InputType.TYPE_DATETIME_VARIATION_DATE);
+
+
+                    LinearLayout.LayoutParams vLayoutParams;
+                    Button b1 = ((Button) view.findViewById(R.id.Person_Item_Detail_Call));
+                    b1.setOnClickListener(
+                            new View.OnClickListener() {
+                                @Override
+                                public void onClick(View v) {
+                        /* TODO Add on click to open event in calendar */
+                                }
+                            });
+
+                    b1.setCompoundDrawablesWithIntrinsicBounds(
+                            res.getDrawable(android.R.drawable.ic_menu_agenda), null, null, null);
+
+                    vLayoutParams = (b1.getLayoutParams()
+                                             .getClass() == LinearLayout.LayoutParams.class) ?
+                                    (LinearLayout.LayoutParams) b1.getLayoutParams() :
+                                    new LinearLayout.LayoutParams(context, null);
+                    vLayoutParams.weight = 2;
+                    b1.setLayoutParams(vLayoutParams);
+
+                    Button b2 = ((Button) view.findViewById(R.id.Person_Item_Detail_Sms));
+                    b2.setVisibility(View.GONE);
+                } else if (mimeType.contentEquals(
+                        ContactsContract.CommonDataKinds.Im.CONTENT_ITEM_TYPE)) { //IM
+                    TextView type = ((TextView) view.findViewById(R.id.Person_Item_Detail_Type));
+
+                    type.setText(ContactsContract.CommonDataKinds.Im.getTypeLabel(res,cursor.getInt(cursor.getColumnIndex(
+                            ContactsContract.CommonDataKinds.Im.TYPE)),cursor.getString(cursor.getColumnIndex(
+                            ContactsContract.CommonDataKinds.Im.LABEL))));
+
+                    TextView proto = ((TextView) view.findViewById(R.id.person_detail_phone_list_im_protocol));
+                    proto.setText(ContactsContract.CommonDataKinds.Im.getProtocolLabel(res,cursor.getInt(cursor.getColumnIndex(
+                            ContactsContract.CommonDataKinds.Im.PROTOCOL)),cursor.getString(cursor.getColumnIndex(
+                            ContactsContract.CommonDataKinds.Im.CUSTOM_PROTOCOL))));
+
+                    TextView data = ((TextView) view.findViewById(R.id.person_detail_phone_list_im_data));
+
+                    data.setText(
+                            cursor.getString(cursor.getColumnIndex(
+                                    ContactsContract.CommonDataKinds.Im.DATA)));
+                    data.setInputType(InputType.TYPE_CLASS_TEXT+InputType.TYPE_TEXT_VARIATION_NORMAL);
+
+
+                    LinearLayout.LayoutParams vLayoutParams;
+                    Button b1 = ((Button) view.findViewById(R.id.person_detail_phone_list_im_action));
+                    b1.setOnClickListener(
+                            new View.OnClickListener() {
+                                @Override
+                                public void onClick(View v) {
+                        /* TODO Add on click to open contact in IM app */
+                                }
+                            });
+                }
             }
         }
 
@@ -282,13 +429,22 @@ public class PersonDetailFragment extends Fragment
 
             if (mimeType.contentEquals(ContactsContract.CommonDataKinds.Phone.CONTENT_ITEM_TYPE)) {
                 return VIEW_TYPE_PHONE;
+            } else if (mimeType.contentEquals(ContactsContract.CommonDataKinds.StructuredName.CONTENT_ITEM_TYPE)) {
+                return VIEW_TYPE_NAME;
+            } else if (mimeType.contentEquals(ContactsContract.CommonDataKinds.Email.CONTENT_ITEM_TYPE)) {
+                return VIEW_TYPE_EMAIL;
+            } else if (mimeType.contentEquals(ContactsContract.CommonDataKinds.Event.CONTENT_ITEM_TYPE)) {
+                return VIEW_TYPE_EVENT;
+            } else if (mimeType.contentEquals(ContactsContract.CommonDataKinds.Im.CONTENT_ITEM_TYPE)) {
+                return VIEW_TYPE_IM;
             }
+
             return -1;
         }
 
         @Override
         public int getViewTypeCount() {
-            return 2;
+            return 5;
         }
 
         /**
@@ -307,12 +463,18 @@ public class PersonDetailFragment extends Fragment
 
             String mimeType = cursor.getString(
                     cursor.getColumnIndex(ContactsContract.Data.MIMETYPE));
-            if (mimeType.contentEquals(ContactsContract.CommonDataKinds.Phone.CONTENT_ITEM_TYPE)) {
+            if (mimeType.contentEquals(ContactsContract.CommonDataKinds.Phone.CONTENT_ITEM_TYPE)) { //Phone Number
                 result = li.inflate(R.layout.person_detail_phone_list_item, parent, false);
             }
             else if (mimeType.contentEquals(
-                    ContactsContract.CommonDataKinds.StructuredName.CONTENT_ITEM_TYPE)) {
+                    ContactsContract.CommonDataKinds.StructuredName.CONTENT_ITEM_TYPE)) { //Name
                 result = li.inflate(R.layout.person_detail_phone_list_name, parent, false);
+            }
+            else if (mimeType.contentEquals(ContactsContract.CommonDataKinds.Email.CONTENT_ITEM_TYPE)) { //Email
+                result = li.inflate(R.layout.person_detail_phone_list_item, parent, false);
+            }
+            else if (mimeType.contentEquals(ContactsContract.CommonDataKinds.Event.CONTENT_ITEM_TYPE)) { //Event
+                result = li.inflate(R.layout.person_detail_phone_list_item, parent, false);
             }
 
             return result;
