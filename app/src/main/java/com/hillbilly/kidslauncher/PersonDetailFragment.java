@@ -8,16 +8,21 @@ import android.content.Loader;
 import android.content.res.Resources;
 import android.database.Cursor;
 import android.os.Bundle;
+import android.provider.BaseColumns;
 import android.provider.ContactsContract;
 import android.text.InputType;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.BaseAdapter;
 import android.widget.Button;
-import android.widget.CursorAdapter;
 import android.widget.LinearLayout;
+import android.widget.ListAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
+
+import java.util.ArrayList;
+import java.util.HashMap;
 
 /**
  * A fragment representing a single Person detail screen.
@@ -42,7 +47,6 @@ public class PersonDetailFragment extends Fragment
     private static final String[] PROJECTION =
             {
                     ContactsContract.Data._ID,
-                    ContactsContract.Data.DISPLAY_NAME,
                     ContactsContract.Data.MIMETYPE,
                     ContactsContract.Data.DATA1,
                     ContactsContract.Data.DATA2,
@@ -76,7 +80,7 @@ public class PersonDetailFragment extends Fragment
      */
     private View fRootView;
 
-    private MultiViewCursorAdapter Fmvca;
+    private ContactCursorAdapter Fmvca;
 
     /*
      * Defines a variable to contain the selection value. Once you
@@ -141,7 +145,7 @@ public class PersonDetailFragment extends Fragment
                              Bundle savedInstanceState) {
         fRootView = inflater.inflate(R.layout.fragment_person_detail, container, false);
 
-        Fmvca = new MultiViewCursorAdapter(getActivity(), null, 0);
+        Fmvca = new ContactCursorAdapter(getActivity(), null);
 
         fLv = (ListView) fRootView.findViewById(R.id.ContactDataList);
 
@@ -215,7 +219,7 @@ public class PersonDetailFragment extends Fragment
 
     }
 
-    private class MultiViewCursorAdapter extends CursorAdapter {
+    private class ContactCursorAdapter extends BaseAdapter implements ListAdapter {
 
         public static final int VIEW_TYPE_PHONE = 0;
 
@@ -231,118 +235,209 @@ public class PersonDetailFragment extends Fragment
 
         private Context fContext;
 
+        private ArrayList<HashMap<String, String>> data;
+
+        private Cursor fCursor;
+
         /**
          * Recommended constructor.
          *
          * @param context The context
          * @param c       The cursor from which to get the data.
-         * @param flags   Flags used to determine the behavior of the adapter; may
-         *                be any combination of {@link #FLAG_AUTO_REQUERY} and
-         *                {@link #FLAG_REGISTER_CONTENT_OBSERVER}.
          */
-        public MultiViewCursorAdapter(Context context, Cursor c, int flags) {
-            super(context, c, flags);
+        public ContactCursorAdapter(Context context, Cursor c) {
             li = LayoutInflater.from(context);
             fContext = context;
+
+            data = new ArrayList<HashMap<String, String>>();
+
+            if (c != null) {
+                loadCursor(c);
+            }
         }
 
         /**
-         * Bind an existing view to the data pointed to by cursor
+         * How many items are in the data set represented by this Adapter.
          *
-         * @param view    Existing view, returned earlier by newView
-         * @param context Interface to application's global information
-         * @param cursor  The cursor from which to get the data. The cursor is already
+         * @return Count of items.
          */
         @Override
-        public void bindView(View view, Context context, Cursor cursor) {
+        public int getCount() {
+            return data.size();
+        }
 
-            String mimeType = cursor.getString(
-                    cursor.getColumnIndex(ContactsContract.Data.MIMETYPE));
+        /**
+         * Get the data item associated with the specified position in the data set.
+         *
+         * @param position Position of the item whose data we want within the adapter's
+         *                 data set.
+         *
+         * @return a map of String to String column Name to data.
+         */
+        @Override
+        public Object getItem(int position) {
+            return data.get(position);
+        }
+
+        /**
+         * Get the row id associated with the specified position in the list.
+         *
+         * @param position The position of the item within the adapter's data set whose row id we want.
+         *
+         * @return The id of the item at the specified position.
+         */
+        @Override
+        public long getItemId(int position) {
+            return Long.getLong(data.get(position)
+                                        .get(BaseColumns._ID));
+        }
+
+        @Override
+        public int getItemViewType(int position) {
+            String mimeType = data.get(position)
+                    .get(ContactsContract.Data.MIMETYPE);
+
+            if (mimeType.contentEquals(ContactsContract.CommonDataKinds.Phone.CONTENT_ITEM_TYPE)) {
+                return VIEW_TYPE_PHONE;
+            }
+            else if (mimeType.contentEquals(
+                    ContactsContract.CommonDataKinds.StructuredName.CONTENT_ITEM_TYPE)) {
+                return VIEW_TYPE_NAME;
+            }
+            else if (mimeType.contentEquals(
+                    ContactsContract.CommonDataKinds.Email.CONTENT_ITEM_TYPE)) {
+                return VIEW_TYPE_EMAIL;
+            }
+            else if (mimeType.contentEquals(
+                    ContactsContract.CommonDataKinds.Event.CONTENT_ITEM_TYPE)) {
+                return VIEW_TYPE_EVENT;
+            }
+            else if (mimeType.contentEquals(
+                    ContactsContract.CommonDataKinds.Im.CONTENT_ITEM_TYPE)) {
+                return VIEW_TYPE_IM;
+            }
+
+            return -1;
+        }
+
+        /**
+         * Get a View that displays the data at the specified position in the data set. You can either
+         * create a View manually or inflate it from an XML layout file. When the View is inflated, the
+         * parent View (GridView, ListView...) will apply default layout parameters unless you use
+         * {@link android.view.LayoutInflater#inflate(int, android.view.ViewGroup, boolean)}
+         * to specify a root view and to prevent attachment to the root.
+         *
+         * @param position    The position of the item within the adapter's data set of the item whose view
+         *                    we want.
+         * @param convertView The old view to reuse, if possible. Note: You should check that this view
+         *                    is non-null and of an appropriate type before using. If it is not possible to convert
+         *                    this view to display the correct data, this method can create a new view.
+         *                    Heterogeneous lists can specify their number of view types, so that this View is
+         *                    always of the right type (see {@link #getViewTypeCount()} and
+         *                    {@link #getItemViewType(int)}).
+         * @param parent      The parent that this view will eventually be attached to
+         *
+         * @return A View corresponding to the data at the specified position.
+         */
+        @Override
+        public View getView(int position, View convertView, ViewGroup parent) {
+            View result = null;
+
+            String mimeType = data.get(position)
+                    .get(ContactsContract.Data.MIMETYPE);
 
             Resources res = fContext.getResources();
-            if (view != null){
-                if (mimeType.contentEquals(
-                        ContactsContract.CommonDataKinds.Phone.CONTENT_ITEM_TYPE)) { //Phone
-                    ((TextView) view.findViewById(R.id.Person_Item_Detail_Type)).setText(
-                            ContactsContract.CommonDataKinds.Phone.getTypeLabel(
-                                    Resources.getSystem(),
-                                    cursor.getType(cursor.getColumnIndex(
-                                            ContactsContract.CommonDataKinds.Phone.TYPE)),
-                                    cursor.getString(cursor.getColumnIndex(
-                                            ContactsContract.CommonDataKinds.Phone.LABEL))));
 
-                    ((TextView) view.findViewById(R.id.Person_Item_Detail_Data)).setText(
-                            cursor.getString(cursor.getColumnIndex(
-                                    ContactsContract.CommonDataKinds.Phone.NUMBER)));
+            if (mimeType.contentEquals(
+                    ContactsContract.CommonDataKinds.Phone.CONTENT_ITEM_TYPE)) { //Phone Number
+                result = li.inflate(R.layout.person_detail_phone_list_item, parent, false);
+                ((TextView) result.findViewById(R.id.Person_Item_Detail_Type)).setText(
+                        ContactsContract.CommonDataKinds.Phone.getTypeLabel(
+                                res,
+                                Integer.parseInt(data.get(position)
+                                                         .get(ContactsContract.CommonDataKinds.Phone.TYPE)),
+                                data.get(position)
+                                        .get(ContactsContract.CommonDataKinds.Phone.LABEL)));
 
-                    ((Button) view.findViewById(R.id.Person_Item_Detail_Call)).setOnClickListener(
-                            new View.OnClickListener() {
-                                @Override
-                                public void onClick(View v) {
+                ((TextView) result.findViewById(R.id.Person_Item_Detail_Data)).setText(
+                        data.get(position)
+                                .get(ContactsContract.CommonDataKinds.Phone.NUMBER));
+
+                ((Button) result.findViewById(R.id.Person_Item_Detail_Call)).setOnClickListener(
+                        new View.OnClickListener() {
+                            @Override
+                            public void onClick(View v) {
                         /* TODO Add on click to initiate phone call */
-                                }
-                            });
-                    ((Button) view.findViewById(R.id.Person_Item_Detail_Sms)).setOnClickListener(
-                            new View.OnClickListener() {
-                                @Override
-                                public void onClick(View v) {
+                            }
+                        });
+                ((Button) result.findViewById(R.id.Person_Item_Detail_Sms)).setOnClickListener(
+                        new View.OnClickListener() {
+                            @Override
+                            public void onClick(View v) {
                          /* TODO add on click to initiate Text message */
-                                }
-                            });
-                }
-                else if (mimeType.contentEquals(
-                        ContactsContract.CommonDataKinds.StructuredName.CONTENT_ITEM_TYPE)) { //Name
-                    ((TextView) view.findViewById(R.id.Person_Detail_List_Contact_Name)).setText(
-                            cursor.getString(cursor.getColumnIndex(
-                                    ContactsContract.CommonDataKinds.StructuredName.DISPLAY_NAME)));
-                }
-                else if (mimeType.contentEquals(
-                        ContactsContract.CommonDataKinds.Email.CONTENT_ITEM_TYPE)) { //Email
-                    ((TextView) view.findViewById(R.id.Person_Item_Detail_Type)).setText(
-                            ContactsContract.CommonDataKinds.Email.getTypeLabel(
-                                    Resources.getSystem(),
-                                    cursor.getType(cursor.getColumnIndex(
-                                            ContactsContract.CommonDataKinds.Email.TYPE)),
-                                    cursor.getString(cursor.getColumnIndex(
-                                            ContactsContract.CommonDataKinds.Email.LABEL))));
-                    TextView data = ((TextView) view.findViewById(R.id.Person_Item_Detail_Data));
+                            }
+                        });
+            }
+            else if (mimeType.contentEquals(
+                    ContactsContract.CommonDataKinds.StructuredName.CONTENT_ITEM_TYPE)) { //Name
+                result = li.inflate(R.layout.person_detail_phone_list_name, parent, false);
+                ((TextView) result.findViewById(R.id.Person_Detail_List_Contact_Name)).setText(
+                        data.get(position)
+                                .get(ContactsContract.CommonDataKinds.StructuredName.DISPLAY_NAME)
+                                                                                              );
+            }
+            else if (mimeType.contentEquals(
+                    ContactsContract.CommonDataKinds.Email.CONTENT_ITEM_TYPE)) { //Email
+                result = li.inflate(R.layout.person_detail_phone_list_item, parent, false);
 
-                    data.setText(
-                            cursor.getString(cursor.getColumnIndex(
-                                    ContactsContract.CommonDataKinds.Phone.NUMBER)));
-                    data.setInputType(InputType.TYPE_TEXT_VARIATION_EMAIL_ADDRESS);
+                ((TextView) result.findViewById(R.id.Person_Item_Detail_Type)).setText(
+                        ContactsContract.CommonDataKinds.Email.getTypeLabel(
+                                res,
+                                Integer.parseInt(data.get(position)
+                                                         .get(ContactsContract.CommonDataKinds.Email.TYPE)),
+                                data.get(position)
+                                        .get(ContactsContract.CommonDataKinds.Email.LABEL)));
 
+                TextView textData = ((TextView) result.findViewById(R.id.Person_Item_Detail_Data));
 
-                    LinearLayout.LayoutParams vLayoutParams;
-                    Button b1 = ((Button) view.findViewById(R.id.Person_Item_Detail_Call));
-                    b1.setOnClickListener(
-                            new View.OnClickListener() {
-                                @Override
-                                public void onClick(View v) {
+                textData.setText(data.get(position)
+                                         .get(ContactsContract.CommonDataKinds.Email.ADDRESS));
+                textData.setInputType(InputType.TYPE_TEXT_VARIATION_EMAIL_ADDRESS);
+
+                LinearLayout.LayoutParams vLayoutParams;
+                Button b1 = ((Button) result.findViewById(R.id.Person_Item_Detail_Call));
+                b1.setOnClickListener(
+                        new View.OnClickListener() {
+                            @Override
+                            public void onClick(View v) {
                         /* TODO Add on click to initiate email */
-                                }
-                            });
+                            }
+                        });
 
-                    b1.setCompoundDrawablesWithIntrinsicBounds(
-                            res.getDrawable(android.R.drawable.ic_dialog_email), null, null, null);
+                b1.setCompoundDrawablesWithIntrinsicBounds(
+                        res.getDrawable(android.R.drawable.ic_dialog_email), null, null, null);
 
-                    vLayoutParams = (b1.getLayoutParams()
-                                             .getClass() == LinearLayout.LayoutParams.class) ?
-                                    (LinearLayout.LayoutParams) b1.getLayoutParams() :
-                                    new LinearLayout.LayoutParams(context, null);
-                    vLayoutParams.weight = 2;
-                    b1.setLayoutParams(vLayoutParams);
+                vLayoutParams = (b1.getLayoutParams()
+                                         .getClass() == LinearLayout.LayoutParams.class) ?
+                                (LinearLayout.LayoutParams) b1.getLayoutParams() :
+                                new LinearLayout.LayoutParams(fContext, null);
+                vLayoutParams.weight = 2;
+                b1.setLayoutParams(vLayoutParams);
 
-                    Button b2 = ((Button) view.findViewById(R.id.Person_Item_Detail_Sms));
-                    b2.setVisibility(View.GONE);
-                }
-                else if (mimeType.contentEquals(
+                Button b2 = ((Button) result.findViewById(R.id.Person_Item_Detail_Sms));
+                b2.setVisibility(View.GONE);
+
+            }
+            else {
+                if (mimeType.contentEquals(
                         ContactsContract.CommonDataKinds.Event.CONTENT_ITEM_TYPE)) { //Event
-                    TextView type = ((TextView) view.findViewById(R.id.Person_Item_Detail_Type));
+                    result = li.inflate(R.layout.person_detail_phone_list_item, parent, false);
+
+                    TextView type = ((TextView) result.findViewById(R.id.Person_Item_Detail_Type));
 
                     switch (ContactsContract.CommonDataKinds.Event.getTypeResource(
-                            cursor.getInt(cursor.getColumnIndex(
-                                    ContactsContract.CommonDataKinds.Event.TYPE)))) {
+                            Integer.valueOf(data.get(position)
+                                                    .get(ContactsContract.CommonDataKinds.Event.TYPE)))) {
                         case ContactsContract.CommonDataKinds.Event.TYPE_ANNIVERSARY:
                             type.setText("Anniversary");
                             break;
@@ -353,21 +448,23 @@ public class PersonDetailFragment extends Fragment
                             type.setText("Other");
                             break;
                         case ContactsContract.CommonDataKinds.Event.TYPE_CUSTOM:
-                            type.setText(cursor.getString(cursor.getColumnIndex(
-                                    ContactsContract.CommonDataKinds.Event.LABEL)));
+                            type.setText(data.get(position)
+                                                 .get(ContactsContract.CommonDataKinds.Event.LABEL));
                             break;
                     }
 
-                    TextView data = ((TextView) view.findViewById(R.id.Person_Item_Detail_Data));
+                    TextView textData = ((TextView) result.findViewById(
+                            R.id.Person_Item_Detail_Data));
 
-                    data.setText(
-                            cursor.getString(cursor.getColumnIndex(
-                                    ContactsContract.CommonDataKinds.Event.START_DATE)));
-                    data.setInputType(InputType.TYPE_DATETIME_VARIATION_DATE);
+                    textData.setText(
+                            data.get(position)
+                                    .get(ContactsContract.CommonDataKinds.Event.START_DATE));
+
+                    textData.setInputType(InputType.TYPE_DATETIME_VARIATION_DATE);
 
 
                     LinearLayout.LayoutParams vLayoutParams;
-                    Button b1 = ((Button) view.findViewById(R.id.Person_Item_Detail_Call));
+                    Button b1 = ((Button) result.findViewById(R.id.Person_Item_Detail_Call));
                     b1.setOnClickListener(
                             new View.OnClickListener() {
                                 @Override
@@ -382,35 +479,55 @@ public class PersonDetailFragment extends Fragment
                     vLayoutParams = (b1.getLayoutParams()
                                              .getClass() == LinearLayout.LayoutParams.class) ?
                                     (LinearLayout.LayoutParams) b1.getLayoutParams() :
-                                    new LinearLayout.LayoutParams(context, null);
+                                    new LinearLayout.LayoutParams(fContext, null);
                     vLayoutParams.weight = 2;
                     b1.setLayoutParams(vLayoutParams);
 
-                    Button b2 = ((Button) view.findViewById(R.id.Person_Item_Detail_Sms));
+                    Button b2 = ((Button) result.findViewById(R.id.Person_Item_Detail_Sms));
                     b2.setVisibility(View.GONE);
-                } else if (mimeType.contentEquals(
-                        ContactsContract.CommonDataKinds.Im.CONTENT_ITEM_TYPE)) { //IM
-                    TextView type = ((TextView) view.findViewById(R.id.Person_Item_Detail_Type));
+                }
+                else if (mimeType.contentEquals(
+                        ContactsContract.CommonDataKinds.Im.CONTENT_ITEM_TYPE)) { //Im
+                    result = li.inflate(R.layout.person_detail_phone_list_im, parent, false);
 
-                    type.setText(ContactsContract.CommonDataKinds.Im.getTypeLabel(res,cursor.getInt(cursor.getColumnIndex(
-                            ContactsContract.CommonDataKinds.Im.TYPE)),cursor.getString(cursor.getColumnIndex(
-                            ContactsContract.CommonDataKinds.Im.LABEL))));
+                    TextView type = ((TextView) result.findViewById(
+                            R.id.person_detail_phone_list_im_type));
 
-                    TextView proto = ((TextView) view.findViewById(R.id.person_detail_phone_list_im_protocol));
-                    proto.setText(ContactsContract.CommonDataKinds.Im.getProtocolLabel(res,cursor.getInt(cursor.getColumnIndex(
-                            ContactsContract.CommonDataKinds.Im.PROTOCOL)),cursor.getString(cursor.getColumnIndex(
-                            ContactsContract.CommonDataKinds.Im.CUSTOM_PROTOCOL))));
+                    type.setText(ContactsContract.CommonDataKinds.Im.getTypeLabel(res,
+                                                                                  Integer.parseInt(
+                                                                                          data.get(
+                                                                                                  position)
+                                                                                                  .get(ContactsContract.CommonDataKinds.Im.TYPE)),
+                                                                                  data.get(position)
+                                                                                          .get(ContactsContract.CommonDataKinds.Im.LABEL)));
 
-                    TextView data = ((TextView) view.findViewById(R.id.person_detail_phone_list_im_data));
+                    TextView proto = ((TextView) result.findViewById(
+                            R.id.person_detail_phone_list_im_protocol));
+                    proto.setText(ContactsContract.CommonDataKinds.Im.getProtocolLabel(res,
+                                                                                       Integer.parseInt(
+                                                                                               data.get(
+                                                                                                       position)
+                                                                                                       .get(
+                                                                                                               ContactsContract.CommonDataKinds.Im.PROTOCOL)),
+                                                                                       data.get(
+                                                                                               position)
+                                                                                               .get(
+                                                                                                       ContactsContract.CommonDataKinds.Im.CUSTOM_PROTOCOL)));
 
-                    data.setText(
-                            cursor.getString(cursor.getColumnIndex(
-                                    ContactsContract.CommonDataKinds.Im.DATA)));
-                    data.setInputType(InputType.TYPE_CLASS_TEXT+InputType.TYPE_TEXT_VARIATION_NORMAL);
+                    TextView textData = ((TextView) result.findViewById(
+                            R.id.person_detail_phone_list_im_data));
+
+                    textData.setText(
+                            data.get(position)
+                                    .get(
+                                            ContactsContract.CommonDataKinds.Im.DATA));
+                    textData.setInputType(
+                            InputType.TYPE_CLASS_TEXT + InputType.TYPE_TEXT_VARIATION_NORMAL);
 
 
                     LinearLayout.LayoutParams vLayoutParams;
-                    Button b1 = ((Button) view.findViewById(R.id.person_detail_phone_list_im_action));
+                    Button b1 = ((Button) result.findViewById(
+                            R.id.person_detail_phone_list_im_action));
                     b1.setOnClickListener(
                             new View.OnClickListener() {
                                 @Override
@@ -418,28 +535,13 @@ public class PersonDetailFragment extends Fragment
                         /* TODO Add on click to open contact in IM app */
                                 }
                             });
+
+                }
+                else {
+                    result = li.inflate(R.layout.empty, parent, false);
                 }
             }
-        }
-
-        @Override
-        public int getItemViewType(int position) {
-            Cursor c = (Cursor) getItem(position);
-            String mimeType = c.getString(c.getColumnIndex(ContactsContract.Data.MIMETYPE));
-
-            if (mimeType.contentEquals(ContactsContract.CommonDataKinds.Phone.CONTENT_ITEM_TYPE)) {
-                return VIEW_TYPE_PHONE;
-            } else if (mimeType.contentEquals(ContactsContract.CommonDataKinds.StructuredName.CONTENT_ITEM_TYPE)) {
-                return VIEW_TYPE_NAME;
-            } else if (mimeType.contentEquals(ContactsContract.CommonDataKinds.Email.CONTENT_ITEM_TYPE)) {
-                return VIEW_TYPE_EMAIL;
-            } else if (mimeType.contentEquals(ContactsContract.CommonDataKinds.Event.CONTENT_ITEM_TYPE)) {
-                return VIEW_TYPE_EVENT;
-            } else if (mimeType.contentEquals(ContactsContract.CommonDataKinds.Im.CONTENT_ITEM_TYPE)) {
-                return VIEW_TYPE_IM;
-            }
-
-            return -1;
+            return result;
         }
 
         @Override
@@ -447,37 +549,56 @@ public class PersonDetailFragment extends Fragment
             return 5;
         }
 
-        /**
-         * Makes a new view to hold the data pointed to by cursor.
-         *
-         * @param context Interface to application's global information
-         * @param cursor  The cursor from which to get the data. The cursor is already
-         *                moved to the correct position.
-         * @param parent  The parent to which the new view is attached to
-         *
-         * @return the newly created view.
-         */
-        @Override
-        public View newView(Context context, Cursor cursor, ViewGroup parent) {
-            View result = null;
+        private void loadCursor(Cursor c) {
+            c.moveToFirst();
+            do {
+                HashMap<String, String> map = new HashMap<String, String>();
+                for (int i = 0; i < c.getColumnNames().length; i++) {
+                    map.put(c.getColumnName(i), c.getString(i));
+                }
+                data.add(map);
+                c.moveToNext();
+            } while (!c.isAfterLast());
+            fCursor = c;
+            sortData();
+        }
 
-            String mimeType = cursor.getString(
-                    cursor.getColumnIndex(ContactsContract.Data.MIMETYPE));
-            if (mimeType.contentEquals(ContactsContract.CommonDataKinds.Phone.CONTENT_ITEM_TYPE)) { //Phone Number
-                result = li.inflate(R.layout.person_detail_phone_list_item, parent, false);
-            }
-            else if (mimeType.contentEquals(
-                    ContactsContract.CommonDataKinds.StructuredName.CONTENT_ITEM_TYPE)) { //Name
-                result = li.inflate(R.layout.person_detail_phone_list_name, parent, false);
-            }
-            else if (mimeType.contentEquals(ContactsContract.CommonDataKinds.Email.CONTENT_ITEM_TYPE)) { //Email
-                result = li.inflate(R.layout.person_detail_phone_list_item, parent, false);
-            }
-            else if (mimeType.contentEquals(ContactsContract.CommonDataKinds.Event.CONTENT_ITEM_TYPE)) { //Event
-                result = li.inflate(R.layout.person_detail_phone_list_item, parent, false);
-            }
+        private void sortData() {
+            String[] sortOrder = {
+                    ContactsContract.CommonDataKinds.StructuredName.CONTENT_ITEM_TYPE,
+                    ContactsContract.CommonDataKinds.Phone.CONTENT_ITEM_TYPE,
+                    ContactsContract.CommonDataKinds.Email.CONTENT_ITEM_TYPE,
+                    ContactsContract.CommonDataKinds.Im.CONTENT_ITEM_TYPE,
+                    ContactsContract.CommonDataKinds.Event.CONTENT_ITEM_TYPE};
 
-            return result;
+            int dest = 0;
+
+            for (int so = 0; so < sortOrder.length; so++) {
+                for (int src = dest; src < data.size(); src++) {
+                    if (data.get(src)
+                            .get(ContactsContract.Data.MIMETYPE)
+                            .contentEquals(sortOrder[so])) {
+                        swap(src, dest);
+                        dest++;
+                    }
+                }
+            }
+        }
+
+        private void swap(int a, int b) {
+            HashMap<String, String> holding = data.get(a);
+            data.set(a, data.get(b));
+            data.set(b, holding);
+        }
+
+        public void swapCursor(Cursor pData) {
+            if (pData != null) {
+                loadCursor(pData);
+            }
+            else {
+                data.clear();
+                fCursor = null;
+            }
         }
     }
 }

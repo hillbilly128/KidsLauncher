@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:bottom="0dp"
+        android:left="0dp"
+        android:right="0dp"
+        android:top="0dp">
+        <shape android:shape="oval">
+
+            <size
+                android:width="@dimen/Icon_Width"
+                android:height="@dimen/Icon_Width"></size>
+
+            <solid android:color="@android:color/transparent"></solid>
+
+            <stroke
+                android:width="@dimen/line_Width"
+                android:color="@android:color/black"></stroke>
+        </shape>
+    </item>
+    <item
+        android:left="10dp"
+        android:top="10dp">
+        <shape android:shape="rectangle">
+
+            <size
+                android:width="10dp"
+                android:height="10dp"></size>
+
+            <stroke
+                android:width="@dimen/line_Width"
+                android:color="@android:color/black"></stroke>
+
+            <solid android:color="@android:color/black"></solid>
+        </shape>
+    </item>
+    <item
+        android:left="30dp"
+        android:top="10dp">
+        <shape android:shape="rectangle">
+
+            <size
+                android:width="10dp"
+                android:height="10dp"></size>
+
+            <stroke
+                android:width="@dimen/line_Width"
+                android:color="@android:color/black"></stroke>
+
+            <solid android:color="@android:color/black"></solid>
+        </shape>
+    </item>
+    <item
+        android:left="50dp"
+        android:top="10dp">
+        <shape android:shape="rectangle">
+
+            <size
+                android:width="10dp"
+                android:height="10dp"></size>
+
+            <stroke
+                android:width="@dimen/line_Width"
+                android:color="@android:color/black"></stroke>
+
+            <solid android:color="@android:color/black"></solid>
+        </shape>
+    </item>
+    <item
+        android:left="10dp"
+        android:top="30dp">
+        <shape android:shape="rectangle">
+
+            <size
+                android:width="10dp"
+                android:height="10dp"></size>
+
+            <stroke
+                android:width="@dimen/line_Width"
+                android:color="@android:color/black"></stroke>
+
+            <solid android:color="@android:color/black"></solid>
+        </shape>
+    </item>
+    <item
+        android:left="30dp"
+        android:top="30dp">
+        <shape android:shape="rectangle">
+
+            <size
+                android:width="10dp"
+                android:height="10dp"></size>
+
+            <stroke
+                android:width="@dimen/line_Width"
+                android:color="@android:color/black"></stroke>
+
+            <solid android:color="@android:color/black"></solid>
+        </shape>
+    </item>
+    <item
+        android:left="50dp"
+        android:top="30dp">
+        <shape android:shape="rectangle">
+
+            <size
+                android:width="10dp"
+                android:height="10dp"></size>
+
+            <stroke
+                android:width="@dimen/line_Width"
+                android:color="@android:color/black"></stroke>
+
+            <solid android:color="@android:color/black"></solid>
+        </shape>
+    </item>
+</layer-list>

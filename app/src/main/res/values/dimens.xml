@@ -6,5 +6,7 @@
     <dimen name="Icon_Width">64dp</dimen>
     <dimen name="icon_height">64dp</dimen>
     <dimen name="Contact_Detail_Name_Size">30dp</dimen>
+    <dimen name="line_Width">2dp</dimen>
+    <dimen name="square_size">5dp</dimen>
 
 </resources>
